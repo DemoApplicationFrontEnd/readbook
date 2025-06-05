@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build WAR and Docker Image
 
 on:
   push:
@@ -6,16 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  my-build:
+  build-and-dockerize:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: My Build 
-        run: mvn clean package
 
-  build:
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'  # or your required version
+
+    - name: Build WAR using Maven
+      run: mvn clean package
+
+    - name: List WAR file to confirm it's built
+      run: ls -l target/*.war
+
+    - name: Build Docker image with WAR file
+      run: docker build -t my-image-name:$(date +%s) .
